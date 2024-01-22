@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script> -->
+  <meta charset="utf-8" />
+
+</head>
+
+<body>
+
+  <button onclick="clearCanvas()">Clear Canvas</button>
+  <button onclick="captureScreenshot()">Capture Screenshot</button>
+  <p id="bleData">Waiting for data...</p>
+  <script>
+    function setup() {
+      canvas = createCanvas(windowWidth, windowHeight);
+      background(255); // Set initial background color to white
+      noStroke();
+      fill(0, 102);
+    }
+
+    let angle = 0;
+
+    function draw() {
+      // Draw only when mouse is pressed
+      if (mouseIsPressed === true) {
+        angle += 5;
+        let val = cos(radians(angle)) * 12.0;
+        for (let a = 0; a < 360; a += 75) {
+          let xoff = cos(radians(a)) * val;
+          let yoff = sin(radians(a)) * val;
+          fill(0);
+          ellipse(mouseX + xoff, mouseY + yoff, val, val);
+        }
+        fill(255);
+        ellipse(mouseX, mouseY, 2, 2);
+      }
+    }
+
+    function clearCanvas() {
+      background(255);
+    }
+
+    function captureScreenshot() {
+      saveCanvas(canvas, 'screenshot', 'png');
+    }
+
+  </script>
+
+  <!-- get data from the backend -->
+  <script>
+    function updateData() {
+      fetch('/get_raw')
+        .then(response => response.json()) // Convert the response to JSON
+        .then(data => {
+          // Assuming data is an object with a structure like { joystick: { x: "value", y: "value", z: "value" }}
+          if (data.joystick) {
+            const joystickData = data.joystick;
+            document.getElementById('bleData').innerText = `X: ${joystickData.x}, Y: ${joystickData.y}, Z: ${joystickData.z}`;
+            if (joystickData.z == 0) {
+              clearCanvas();
+            }
+          } else {
+            document.getElementById('bleData').innerText = "No data";
+          }
+          // console.log(data);
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    // setInterval(updateData, 100);
+  </script>
+
+  <script>
+    if (window.Worker) {
+      const myWorker = new Worker("./static/js/worker.js");
+
+      myWorker.onmessage = function (e) {
+        const joystickData = e.data;
+        document.getElementById('bleData').innerText = `X: ${joystickData.x}, Y: ${joystickData.y}, Z: ${joystickData.z}`;
+        if (joystickData.z == 0) {
+          clearCanvas();
+        }
+      }
+
+      setInterval(() => {
+        myWorker.postMessage('fetchData');  // Send message to worker to fetch data
+      }, 100);
+    }
+  </script>
+
+</body>
+
+</html>
