@@ -3,9 +3,11 @@ import time
 
 # GPIO pins for the motor
 coil_A_1_pin = 17
-coil_A_2_pin = 18
-coil_B_1_pin = 27
+coil_A_2_pin = 27
+coil_B_1_pin = 23
 coil_B_2_pin = 22
+LED_pin = 2
+button_pin = 3
 
 # Motor specifications
 FULL_ROTATION_STEPS = 945  # Total steps for 315 degrees at 1/3 degree per step
@@ -18,6 +20,8 @@ GPIO.setup(coil_A_1_pin, GPIO.OUT)
 GPIO.setup(coil_A_2_pin, GPIO.OUT)
 GPIO.setup(coil_B_1_pin, GPIO.OUT)
 GPIO.setup(coil_B_2_pin, GPIO.OUT)
+GPIO.setup(LED_pin, GPIO.OUT)
+GPIO.setup(button_pin, GPIO.IN)
 
 
 # Function to set the motor coils
@@ -65,9 +69,18 @@ try:
     while True:
         # Example usage of setPosition
         setPosition(90)  # Move to 90 degrees
+        print("Position: 90")
+
         time.sleep(2)
-        setPosition(0)   # Move back to 0 degrees
+        setPosition(180)   # Move back to 0 degrees
+        print("Position: 180")
+        #turn off led
         time.sleep(2)
+        print(GPIO.input(button_pin))
+        if GPIO.input(button_pin):
+            GPIO.output(LED_pin, GPIO.LOW)
+        else:
+            GPIO.output(LED_pin, GPIO.HIGH)
 
 except KeyboardInterrupt:
     GPIO.cleanup()

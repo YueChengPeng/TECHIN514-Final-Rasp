@@ -4,9 +4,7 @@ onmessage = function(e) {
         fetch('/get_raw')
             .then(response => response.json())
             .then(data => {
-                if (data.joystick) {
-                    postMessage(data.joystick);
-                }
+                postMessage(data);
             })
             .catch(error => console.error('Error:', error));
     }

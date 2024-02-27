@@ -16,31 +16,51 @@
   <script>
     function setup() {
       canvas = createCanvas(windowWidth, windowHeight);
-      background(255); // Set initial background color to white
-      noStroke();
-      fill(0, 102);
+      cursorX = width / 2; // Start in the middle of the canvas
+      cursorY = height / 2;
+      background(102); // Set initial background color to gray
     }
 
-    let angle = 0;
+    let cursorX, cursorY;
+    let joystickData;
+    let cursorSize = 20; // Size of the cursor
+    const speed = 15; // Speed of the cursor movement
 
     function draw() {
       // Draw only when mouse is pressed
+      stroke(255);
       if (mouseIsPressed === true) {
-        angle += 5;
-        let val = cos(radians(angle)) * 12.0;
-        for (let a = 0; a < 360; a += 75) {
-          let xoff = cos(radians(a)) * val;
-          let yoff = sin(radians(a)) * val;
-          fill(0);
-          ellipse(mouseX + xoff, mouseY + yoff, val, val);
-        }
-        fill(255);
-        ellipse(mouseX, mouseY, 2, 2);
+        line(mouseX, mouseY, pmouseX, pmouseY);
       }
+
+
+      console.log(joystickData);
+      // Draw the cursor
+      if (joystickData) {
+        let angle = joystickData;
+        let radian = radians(angle); // Convert degrees to radians
+
+        // Calculate movement
+        let moveX = sin(radian) * speed;
+        let moveY = sin(radian) * speed;
+
+        // Update cursor position with boundaries
+        cursorX += moveX;
+        cursorY -= moveY; // Subtract because in p5.js, the y-axis is inverted
+
+        // Constrain cursor within canvas boundaries
+        cursorX = constrain(cursorX, 0, width - cursorSize);
+        cursorY = constrain(cursorY, 0, height - cursorSize);
+      }
+
+      // Draw the cursor
+      fill(0, 0, 0);
+      noStroke();
+      ellipse(cursorX, cursorY, cursorSize);
     }
 
     function clearCanvas() {
-      background(255);
+      background(102);
     }
 
     function captureScreenshot() {
@@ -50,7 +70,7 @@
   </script>
 
   <!-- get data from the backend -->
-  <script>
+  <!-- <script>
     function updateData() {
       fetch('/get_raw')
         .then(response => response.json()) // Convert the response to JSON
@@ -70,23 +90,25 @@
         .catch(error => console.error('Error:', error));
     }
     // setInterval(updateData, 100);
-  </script>
+  </script> -->
 
   <script>
     if (window.Worker) {
       const myWorker = new Worker("./static/js/worker.js");
 
       myWorker.onmessage = function (e) {
-        const joystickData = e.data;
-        document.getElementById('bleData').innerText = `X: ${joystickData.x}, Y: ${joystickData.y}, Z: ${joystickData.z}`;
-        if (joystickData.z == 0) {
+        console.log(e.data);
+        joystickData = e.data["joystick"];
+        // console.log(e.data["clear"]);
+        // document.getElementById('bleData').innerText = `X: ${joystickData.x}, Y: ${joystickData.y}, Z: ${joystickData.z}`;
+        if (e.data["clear"]) {
           clearCanvas();
         }
       }
 
       setInterval(() => {
         myWorker.postMessage('fetchData');  // Send message to worker to fetch data
-      }, 100);
+      }, 500);
     }
   </script>
 
