@@ -65,13 +65,13 @@ class Motor:
 
 # Example usage
 try:
-    stepper_motor = Motor(17, 18, 27, 22)
+    stepper_motor = Motor(9, 25, 11, 8)
     stepper_motor.home_motor()
 
     while True:
-        stepper_motor.setPosition(180)  # Move to 90 degrees
+        stepper_motor.setPosition(0)  # Move to 90 degrees
         time.sleep(2)
-        stepper_motor.setPosition(0)   # Move back to 0 degrees
+        stepper_motor.setPosition(315)   # Move back to 0 degrees
         time.sleep(2)
 
 except KeyboardInterrupt:
